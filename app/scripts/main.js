@@ -78,7 +78,19 @@ var ENO = (function(){
             );
     };
 
-    app.playSample = function (instrument, note, delay = 0) {
+    app.player = function (instrument, note) {
+        fetchSample('samples/AirportTerminal.wav')
+            .then(
+                convolverBuffer => {
+                    let convolver = con.createConvolver();
+                    convolver.buffer = convolverBuffer;
+                    convolver.connect(con.destination);
+                    app.playSample(instrument, note, convolver, 0, 1);
+                }
+            );
+    };
+
+    app.playSample = function (instrument, note, destination, delay = 0) {
         getSample(instrument, note)
             .then(({audioBuffer, distance}) => {
                 let node = con.createBufferSource();
@@ -87,33 +99,29 @@ var ENO = (function(){
                 let playbackRate = Math.pow(2, distance / 12);
                 node.playbackRate.value = playbackRate;
 
-                node.connect(con.destination)
+                node.connect(destination);
                 node.start(con.currentTime + delay);
             });
     };
 
-    app.play = function () {
-        console.log('play yo');
-        fetch('samples/bass-clarinet/bass_clarinet-b2.wav')
-            .then(response => response.arrayBuffer())
-            .then(arrayBuffer => con.decodeAudioData(arrayBuffer))
-            .then(audioBuffer =>
-                {
-                    var node = con.createBufferSource();
-                    node.buffer = audioBuffer;
-                    node.connect(con.destination)
-                    node.start();
-                }
-            )
-            .catch(e => console.log(e));
-    };
-
-    app.playLoops = function (instrument, note, loopLength, delay) {
-        app.playSample(instrument, note, delay);
+    app.playLoops = function (instrument, note, destination, loopLength, delay) {
+        app.playSample(instrument, note, destination, delay);
         loops = setInterval(
-            () => app.playSample(instrument, note, delay),
+            () => app.playSample(instrument, note, destination, delay),
             loopLength * 1000
         );
+    };
+
+    app.startLoops  = function (instrument, note, loopLength, delay) {
+        fetchSample('samples/AirportTerminal.wav')
+            .then(
+                convolverBuffer => {
+                    let convolver = con.createConvolver();
+                    convolver.buffer = convolverBuffer;
+                    convolver.connect(con.destination);
+                    app.playLoops(instrument, note, convolver, loopLength, delay);
+                }
+            );
     };
 
     app.stopLoops = function() {
