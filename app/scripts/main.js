@@ -1,4 +1,4 @@
-var ENO = (function(){
+window.ENO = (function(){
     'use strict';
 
     const SAMPLES = {
@@ -15,25 +15,25 @@ var ENO = (function(){
             { note: 'F', octave: 4, file: 'samples/bass-clarinet/bass_clarinet-f4.wav'},
             { note: 'G#', octave: 2, file: 'samples/bass-clarinet/bass_clarinet-g#2.wav'},
             { note: 'G#', octave: 3, file: 'samples/bass-clarinet/bass_clarinet-g#3.wav'},
-            { note: 'G#', octave: 4, file: 'samples/bass-clarinet/bass_clarinet-g#4.wav'},
+            { note: 'G#', octave: 4, file: 'samples/bass-clarinet/bass_clarinet-g#4.wav'}
         ]
     };
 
     const OCTAVE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
     var app = {};
-    var audio_context = window.AudioContext || window.webkitAudioContext;
-    var con = new audio_context();
+    //var audioContext = window.AudioContext || window.webkitAudioContext;
+    var con = new (window.AudioContext || window.webkitAudioContext)();
     var loops = null;
 
     function flatToSharp(note) {
         switch (note) {
-          case 'Bb': return 'A#';
+            case 'Bb': return 'A#';
             case 'Db': return 'C#';
             case 'Eb': return 'D#';
             case 'Gb': return 'F#';
             case 'Ab': return 'G#';
-            default:   return note;
+            default: return note;
         }
     }
 
@@ -58,10 +58,10 @@ var ENO = (function(){
         return fetch(encodeURIComponent(path))
             .then(response => response.arrayBuffer())
             .then(arrayBuffer => con.decodeAudioData(arrayBuffer));
-    };
+    }
 
     function getSample(instrument, noteAndOctave) {
-        var [noteAndOctave, note, octave] = /^(\w[b#]?)(\d)$/.exec(noteAndOctave);
+        let [, note, octave] = /^(\w[b#]?)(\d)$/.exec(noteAndOctave);
         note = flatToSharp(note);
         octave = parseInt(octave, 10);
 
@@ -76,7 +76,7 @@ var ENO = (function(){
                     distance: distance
                 })
             );
-    };
+    }
 
     app.player = function (instrument, note) {
         fetchSample('samples/AirportTerminal.wav')
@@ -112,14 +112,21 @@ var ENO = (function(){
         );
     };
 
-    app.startLoops  = function (instrument, note, loopLength, delay) {
+    app.startLoops = function (instrument, note, loopLength, delay) {
         fetchSample('samples/AirportTerminal.wav')
             .then(
                 convolverBuffer => {
                     let convolver = con.createConvolver();
                     convolver.buffer = convolverBuffer;
                     convolver.connect(con.destination);
-                    app.playLoops(instrument, note, convolver, loopLength, delay);
+
+                    app.playLoops('Bass clarinet', 'F2', convolver, 19.7, 4.0);
+                    app.playLoops('Bass clarinet', 'Ab2', convolver, 17.8, 8.1);
+                    app.playLoops('Bass clarinet', 'C3', convolver, 21.3, 5.6);
+                    app.playLoops('Bass clarinet', 'Db3', convolver, 22.1, 12.6);
+                    app.playLoops('Bass clarinet', 'Eb3', convolver, 18.4, 9.2);
+                    app.playLoops('Bass clarinet', 'F3', convolver, 20.0, 14.1);
+                    app.playLoops('Bass clarinet', 'Ab3', convolver, 17.7, 3.1);
                 }
             );
     };
